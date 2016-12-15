@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements
         mCameraView = (CameraView) findViewById(R.id.camera);
         if (mCameraView != null) {
             mCameraView.addCallback(mCallback);
+
         }
         FloatingActionButton takePicture = (FloatingActionButton) findViewById(R.id.take_picture);
         if (takePicture != null) {
