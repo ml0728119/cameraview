@@ -27,6 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.os.ParcelableCompat;
 import android.support.v4.os.ParcelableCompatCreatorCallbacks;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
@@ -37,57 +38,39 @@ import java.util.Set;
 
 public class CameraView extends FrameLayout {
 
-    /**
-     * The camera device faces the opposite direction as the device's screen.
-     */
+    /** The camera device faces the opposite direction as the device's screen. */
     public static final int FACING_BACK = Constants.FACING_BACK;
 
-    /**
-     * The camera device faces the same direction as the device's screen.
-     */
+    /** The camera device faces the same direction as the device's screen. */
     public static final int FACING_FRONT = Constants.FACING_FRONT;
 
-    /**
-     * Direction the camera faces relative to device screen.
-     */
+    /** Direction the camera faces relative to device screen. */
     @IntDef({FACING_BACK, FACING_FRONT})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Facing {
     }
 
-    /**
-     * Flash will not be fired.
-     */
+    /** Flash will not be fired. */
     public static final int FLASH_OFF = Constants.FLASH_OFF;
 
-    /**
-     * Flash will always be fired during snapshot.
-     */
+    /** Flash will always be fired during snapshot. */
     public static final int FLASH_ON = Constants.FLASH_ON;
 
-    /**
-     * Constant emission of light during preview, auto-focus and snapshot.
-     */
+    /** Constant emission of light during preview, auto-focus and snapshot. */
     public static final int FLASH_TORCH = Constants.FLASH_TORCH;
 
-    /**
-     * Flash will be fired automatically when required.
-     */
+    /** Flash will be fired automatically when required. */
     public static final int FLASH_AUTO = Constants.FLASH_AUTO;
 
-    /**
-     * Flash will be fired in red-eye reduction mode.
-     */
+    /** Flash will be fired in red-eye reduction mode. */
     public static final int FLASH_RED_EYE = Constants.FLASH_RED_EYE;
 
-    /**
-     * The mode for for the camera device's flash control
-     */
+    /** The mode for for the camera device's flash control */
     @IntDef({FLASH_OFF, FLASH_ON, FLASH_TORCH, FLASH_AUTO, FLASH_RED_EYE})
     public @interface Flash {
     }
 
-    final CameraViewImpl mImpl;
+    CameraViewImpl mImpl;
 
     private final CallbackBridge mCallbacks;
 
@@ -106,26 +89,21 @@ public class CameraView extends FrameLayout {
     @SuppressWarnings("WrongConstant")
     public CameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        if (isInEditMode()){
+            mCallbacks = null;
+            mDisplayOrientationDetector = null;
+            return;
+        }
         // Internal setup
-        final PreviewImpl preview;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            preview = new SurfaceViewPreview(context, this);
-        } else {
-            preview = new TextureViewPreview(context, this);
-        }
+        final PreviewImpl preview = createPreviewImpl(context);
         mCallbacks = new CallbackBridge();
-
-        final CameraSupport cameraSettings = new CameraSupport();
-        if (cameraSettings.supportCamera2(context)) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                mImpl = new Camera2(mCallbacks, preview, context);
-            } else {
-                mImpl = new Camera2Api23(mCallbacks, preview, context);
-            }
-        } else {
+        if (Build.VERSION.SDK_INT < 21) {
             mImpl = new Camera1(mCallbacks, preview);
+        } else if (Build.VERSION.SDK_INT < 23) {
+            mImpl = new Camera2(mCallbacks, preview, context);
+        } else {
+            mImpl = new Camera2Api23(mCallbacks, preview, context);
         }
-
         // Attributes
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CameraView, defStyleAttr,
                 R.style.Widget_CameraView);
@@ -149,20 +127,39 @@ public class CameraView extends FrameLayout {
         };
     }
 
+    @NonNull
+    private PreviewImpl createPreviewImpl(Context context) {
+        PreviewImpl preview;
+        if (Build.VERSION.SDK_INT < 14) {
+            preview = new SurfaceViewPreview(context, this);
+        } else {
+            preview = new TextureViewPreview(context, this);
+        }
+        return preview;
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mDisplayOrientationDetector.enable(ViewCompat2.getDisplay(this));
+        if (!isInEditMode()) {
+            mDisplayOrientationDetector.enable(ViewCompat.getDisplay(this));
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        mDisplayOrientationDetector.disable();
+        if (!isInEditMode()) {
+            mDisplayOrientationDetector.disable();
+        }
         super.onDetachedFromWindow();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (isInEditMode()){
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
         // Handle android:adjustViewBounds
         if (mAdjustViewBounds) {
             if (!isCameraOpened()) {
@@ -246,7 +243,14 @@ public class CameraView extends FrameLayout {
      * {@link Activity#onResume()}.
      */
     public void start() {
-        mImpl.start();
+        if (!mImpl.start()) {
+            //store the state ,and restore this state after fall back o Camera1
+            Parcelable state=onSaveInstanceState();
+            // Camera2 uses legacy hardware layer; fall back to Camera1
+            mImpl = new Camera1(mCallbacks, createPreviewImpl(getContext()));
+            onRestoreInstanceState(state);
+            mImpl.start();
+        }
     }
 
     /**
@@ -339,7 +343,9 @@ public class CameraView extends FrameLayout {
      * @param ratio The {@link AspectRatio} to be set.
      */
     public void setAspectRatio(@NonNull AspectRatio ratio) {
-        mImpl.setAspectRatio(ratio);
+        if (mImpl.setAspectRatio(ratio)) {
+            requestLayout();
+        }
     }
 
     /**
@@ -530,4 +536,5 @@ public class CameraView extends FrameLayout {
         public void onPictureTaken(CameraView cameraView, byte[] data) {
         }
     }
+
 }
