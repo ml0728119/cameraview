@@ -275,6 +275,7 @@ public class CameraView extends FrameLayout {
      * @see #removeCallback(Callback)
      */
     public void addCallback(@NonNull Callback callback) {
+        DebugLog.i("Camera2","111111111111111");
         mCallbacks.add(callback);
     }
 

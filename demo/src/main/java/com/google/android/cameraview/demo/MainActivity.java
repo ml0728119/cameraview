@@ -109,8 +109,11 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         mCameraView = (CameraView) findViewById(R.id.camera);
         if (mCameraView != null) {
+
             mCameraView.addCallback(mCallback);
+
         }
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.take_picture);
         if (fab != null) {
             fab.setOnClickListener(mOnClickListener);
@@ -222,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements
         if (mCameraView != null) {
             Toast.makeText(this, ratio.toString(), Toast.LENGTH_SHORT).show();
             mCameraView.setAspectRatio(ratio);
+
         }
     }
 
