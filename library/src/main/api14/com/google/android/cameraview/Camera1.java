@@ -80,6 +80,7 @@ class Camera1 extends CameraViewImpl {
 			public void onSurfaceChanged() {
 				if (mCamera != null) {
 					setUpPreview();
+					DebugLog.i("Tag","111111111111111111111111111111");
 					adjustCameraParameters();
 				}
 			}
@@ -173,6 +174,7 @@ class Camera1 extends CameraViewImpl {
 				throw new UnsupportedOperationException(ratio + " is not supported");
 			} else {
 				mAspectRatio = ratio;
+				DebugLog.i("Tag","222222222222222222222222222");
 				adjustCameraParameters();
 				return true;
 			}
@@ -306,6 +308,7 @@ class Camera1 extends CameraViewImpl {
 		if (mAspectRatio == null) {
 			mAspectRatio = Constants.DEFAULT_ASPECT_RATIO;
 		}
+		DebugLog.i("Tag","333333333333333333333333");
 		adjustCameraParameters();
 		mCamera.setDisplayOrientation(calcDisplayOrientation(mDisplayOrientation));
 		mCallback.onCameraOpened();
@@ -324,14 +327,14 @@ class Camera1 extends CameraViewImpl {
 
 
 	void adjustCameraParameters() {
-		SortedSet<Size> sizes = mPreviewSizes.sizes(mAspectRatio);
-		if (sizes == null) { // Not supported
+		SortedSet<Size> previewSizes = mPreviewSizes.sizes(mAspectRatio);
+		if (previewSizes == null) { // Not supported
 			mAspectRatio = chooseAspectRatio();
-			sizes = mPreviewSizes.sizes(mAspectRatio);
+			previewSizes = mPreviewSizes.sizes(mAspectRatio);
 		}
-		Size previewSize = chooseOptimalSize(sizes);
+		Size previewSize = chooseOptimalSize(previewSizes);
 		// Always re-apply camera parameters
-		final Size pictureSize = choosePictureSize(mPictureSizes.sizes(mAspectRatio));
+		 Size pictureSize = choosePictureSize();
 		if (mShowingPreview) {
 			mCamera.stopPreview();
 		}
@@ -346,8 +349,10 @@ class Camera1 extends CameraViewImpl {
 		}
 	}
 
-	private Size choosePictureSize(SortedSet<Size> sizes) {
-		for (Size tempSize : sizes) {
+	private Size choosePictureSize() {
+		SortedSet<Size> pictureSizes=mPictureSizes.sizes(mAspectRatio);
+
+		for (Size tempSize : pictureSizes) {
 			if (tempSize.getWidth() < MINI_PICTURE_SIZE.getWidth() || tempSize.getHeight() < MINI_PICTURE_SIZE.getHeight()) {
 				continue;
 			} else {
@@ -355,7 +360,7 @@ class Camera1 extends CameraViewImpl {
 			}
 		}
 
-		return sizes.first();
+		return pictureSizes.first();
 	}
 
 	@SuppressWarnings("SuspiciousNameCombination")
