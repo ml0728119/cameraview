@@ -20,7 +20,7 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+
     }
     buildTypes {
         release {
@@ -38,15 +38,8 @@ android {
 }
 
 dependencies {
-    compile "com.android.support:support-annotations:$supportLibraryVersion"
-    compile "com.android.support:support-v4:$supportLibraryVersion"
+    api "com.android.support:support-annotations:$supportLibraryVersion"
+    api "com.android.support:support-v4:$supportLibraryVersion"
 
-    // Tests
-    testCompile 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test:runner:0.5') {
-        exclude module: 'support-annotations'
-    }
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2') {
-        exclude module: 'support-annotations'
-    }
+
 }
