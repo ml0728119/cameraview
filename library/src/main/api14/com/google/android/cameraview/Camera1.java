@@ -21,6 +21,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.support.v4.util.SparseArrayCompat;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.io.IOException;
@@ -80,7 +81,6 @@ class Camera1 extends CameraViewImpl {
             public void onSurfaceChanged() {
                 if (mCamera != null) {
                     setUpPreview();
-                    DebugLog.i("Tag", "111111111111111111111111111111");
                     adjustCameraParameters();
                 }
             }
@@ -274,6 +274,8 @@ class Camera1 extends CameraViewImpl {
         }
     }
 
+
+
     /**
      * This rewrites {@link #mCameraId} and {@link #mCameraInfo}.
      */
@@ -351,16 +353,28 @@ class Camera1 extends CameraViewImpl {
 
     private Size choosePictureSize() {
         SortedSet<Size> pictureSizes = mPictureSizes.sizes(mAspectRatio);
-
+        Log.i("Tag", " mAspectRatio   "+mAspectRatio.getX()+"   "+mAspectRatio.getY());
         for (Size tempSize : pictureSizes) {
+            Log.i("Tag", " w  "+tempSize.getWidth()+"  "+tempSize.getHeight());
             if (tempSize.getWidth() < MINI_PICTURE_SIZE.getWidth() || tempSize.getHeight() < MINI_PICTURE_SIZE.getHeight()) {
                 continue;
             } else {
-                return tempSize;
+//                return tempSize;
             }
         }
 
         return pictureSizes.first();
+    }
+    @Override
+    void setTakenPictureSize(Size size) {
+        mCameraParameters.setPictureSize(size.getWidth(), size.getHeight());
+
+        mCamera.setParameters(mCameraParameters);
+    }
+
+    @Override
+    SizeMap getSupportedPictureSizes() {
+        return mPictureSizes;
     }
 
     @SuppressWarnings("SuspiciousNameCombination")

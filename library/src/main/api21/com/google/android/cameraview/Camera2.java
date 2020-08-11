@@ -347,6 +347,16 @@ class Camera2 extends CameraViewImpl {
         mPreview.setDisplayOrientation(mDisplayOrientation);
     }
 
+    @Override
+    void setTakenPictureSize(Size size) {
+
+    }
+
+    @Override
+    SizeMap getSupportedPictureSizes() {
+        return null;
+    }
+
     /**
      * <p>Chooses a camera ID by the specified camera facing ({@link #mFacing}).</p>
      * <p>This rewrites {@link #mCameraId}, {@link #mCameraCharacteristics}, and optionally

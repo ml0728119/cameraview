@@ -44,6 +44,7 @@ import android.widget.Toast;
 
 import com.google.android.cameraview.AspectRatio;
 import com.google.android.cameraview.CameraView;
+import com.google.android.cameraview.Size;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -226,6 +227,8 @@ public class MainActivity extends AppCompatActivity implements
             Toast.makeText(this, ratio.toString(), Toast.LENGTH_SHORT).show();
             mCameraView.setAspectRatio(ratio);
 
+            mCameraView.setTakenPictureSize(new Size(4032,2268));
+
         }
     }
 
@@ -261,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements
                 public void run() {
                     File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                             "picture.jpg");
+                    Log.d(TAG, "path   " + file.getPath());
                     OutputStream os = null;
                     try {
                         os = new FileOutputStream(file);

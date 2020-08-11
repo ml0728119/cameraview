@@ -19,6 +19,7 @@ package com.google.android.cameraview;
 import android.view.View;
 
 import java.util.Set;
+import java.util.SortedSet;
 
 abstract class CameraViewImpl {
 
@@ -68,6 +69,10 @@ abstract class CameraViewImpl {
     abstract void takePicture();
 
     abstract void setDisplayOrientation(int displayOrientation);
+
+    abstract void setTakenPictureSize(Size size);
+
+    abstract SizeMap getSupportedPictureSizes();
 
     interface Callback {
 
